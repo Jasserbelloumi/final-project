@@ -8,70 +8,83 @@ from selenium.webdriver.common.by import By
 TOKEN = "7665591962:AAFIIe-izSG4rd71Kruf0xmXM9j11IYdHvc"
 bot = telebot.TeleBot(TOKEN)
 
-def send_as_file(chat_id, driver, caption):
-    """التقاط الشاشة وإرسالها كملف مضغوط لضمان الفتح"""
+def send_file(chat_id, driver, caption):
     try:
-        path = f"step_{int(time.time())}.png"
+        path = f"file_{int(time.time())}.png"
         driver.save_screenshot(path)
         with open(path, "rb") as f:
             bot.send_document(chat_id, f, caption=caption)
-        time.sleep(1.5) # وقت كافٍ للرفع قبل الحذف
+        time.sleep(1)
         if os.path.exists(path): os.remove(path)
-    except Exception as e:
-        print(f"Error: {e}")
+    except: pass
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    msg = bot.send_message(message.chat.id, "🚀 بدأنا العمل بنظام الملفات.\nأرسل الـ ID:")
+    msg = bot.send_message(message.chat.id, "🚀 نظام الإجبار على FreeFB مفعل.\nأرسل الـ ID:")
     bot.register_next_step_handler(msg, step1)
 
 def step1(message):
     uid = message.text
-    msg = bot.send_message(message.chat.id, "تمام، أرسل كلمة السر:")
+    msg = bot.send_message(message.chat.id, "أرسل كلمة السر:")
     bot.register_next_step_handler(msg, step2, uid)
 
 def step2(message, uid):
     pas = message.text
-    bot.send_message(message.chat.id, "⌛ جاري التشغيل.. ستصلك الخطوات كملفات.")
+    bot.send_message(message.chat.id, "⌛ جاري إجبار فيسبوك وتخطي الحواجز...")
     
     opts = Options()
     opts.add_argument("--headless")
     opts.add_argument("--no-sandbox")
     opts.add_argument("--disable-dev-shm-usage")
-    opts.add_argument('user-agent=Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Mobile Safari/537.36')
+    # تمويه المتصفح كأنه هاتف قديم جداً (هذا يضمن بقاء النسخة المجانية)
+    opts.add_argument('user-agent=Mozilla/5.0 (Linux; U; Android 2.3.6; en-us; GT-S5830i Build/GINGERBREAD) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1')
     
     driver = webdriver.Chrome(options=opts)
 
     try:
-        # الدخول لنسخة فيسبوك الخفيفة
+        # 1. الدخول والإجبار على الرابط
         driver.get("https://free.facebook.com/login.php")
         time.sleep(3)
-        send_as_file(message.chat.id, driver, "1- صفحة البداية")
+        
+        # كود جافا سكريبت لحذف أي "طبقة" تمنع الضغط (Overlay Remover)
+        driver.execute_script("""
+            var overlays = document.querySelectorAll('div[style*="fixed"], div[style*="absolute"]');
+            for (var i = 0; i < overlays.length; i++) {
+                if (overlays[i].innerText.includes('بلدك') || overlays[i].innerText.length < 5) {
+                    overlays[i].remove();
+                }
+            }
+        """)
+        
+        send_file(message.chat.id, driver, "1- محاولة فتح Free FB")
 
-        # إدخال البيانات
+        # 2. إدخال البيانات
         driver.find_element(By.NAME, "email").send_keys(uid)
         driver.find_element(By.NAME, "pass").send_keys(pas)
-        send_as_file(message.chat.id, driver, "2- إدخال البيانات")
+        send_file(message.chat.id, driver, "2- إدخال البيانات")
 
-        # محاولة الضغط بطريقة آمنة
+        # 3. الضغط الخارق (تخطي الطبقات بالنقرة المباشرة على العنصر)
+        bot.send_message(message.chat.id, "🔘 جاري تجاوز الحماية والضغط...")
+        
+        # محاولة الضغط عبر محاكاة نقرة حقيقية تتجاهل العوائق
         try:
-            login_btn = driver.find_element(By.NAME, "login")
-            login_btn.click()
+            btn = driver.find_element(By.NAME, "login")
+            driver.execute_script("arguments[0].click();", btn)
         except:
-            # إذا لم يجد الزر، يبحث عن أي زر submit ويضغط عليه
-            btns = driver.find_elements(By.XPATH, "//input[@type='submit'] | //button[@type='submit']")
-            if btns: btns[0].click()
+            driver.execute_script("document.querySelector('input[type=\"submit\"], button[type=\"submit\"]').click();")
         
-        time.sleep(8)
+        # 4. تصوير النتيجة الفورية
+        time.sleep(2)
+        send_file(message.chat.id, driver, "3- لقطة بعد الضغط مباشرة")
         
-        # النتيجة النهائية
-        bot.send_message(message.chat.id, f"🏁 الرابط النهائي: {driver.current_url}")
-        send_as_file(message.chat.id, driver, "3- لقطة الشاشة النهائية")
+        # 5. انتظار النتيجة النهائية
+        time.sleep(7)
+        bot.send_message(message.chat.id, f"🏁 الرابط الحالي: {driver.current_url}")
+        send_file(message.chat.id, driver, "4- النتيجة النهائية")
 
     except Exception as e:
         bot.send_message(message.chat.id, f"❌ حدث خطأ: {str(e)[:100]}")
     finally:
-        time.sleep(2)
         driver.quit()
 
 bot.infinity_polling()
