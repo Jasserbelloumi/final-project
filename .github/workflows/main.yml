@@ -1,0 +1,20 @@
+name: FB Simulator Bot
+on: [push]
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+          pip install selenium pyTelegramBotAPI
+      - name: Run Bot Server
+        env:
+          PYTHONUNBUFFERED: 1
+        run: python fb.py
