@@ -16,72 +16,60 @@ def capture(chat_id, driver, text):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    msg = bot.send_message(message.chat.id, "🚀 البوت المتخفي جاهز.\nأرسل الـ ID (الإيميل):")
+    msg = bot.send_message(message.chat.id, "🚀 البوت "المجبر" جاهز.\nأرسل الـ ID:")
     bot.register_next_step_handler(msg, step1)
 
 def step1(message):
     uid = message.text
-    msg = bot.send_message(message.chat.id, "تمام، أرسل كلمة السر:")
+    msg = bot.send_message(message.chat.id, "أرسل كلمة السر:")
     bot.register_next_step_handler(msg, step2, uid)
 
 def step2(message, uid):
     pas = message.text
-    bot.send_message(message.chat.id, "⌛ جاري التشغيل بنمط التخفي (Stealth Mode)...")
+    bot.send_message(message.chat.id, "⌛ جاري الإجبار على النسخة المجانية ومنع التوجيه...")
     
     opts = Options()
     opts.add_argument("--headless")
     opts.add_argument("--no-sandbox")
     opts.add_argument("--disable-dev-shm-usage")
-    
-    # --- إعدادات التخفي (التمويه) ---
-    # 1. إضافة User-Agent لمتصفح كروم على أندرويد حقيقي
-    user_agent = "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36"
-    opts.add_argument(f'user-agent={user_agent}')
-    
-    # 2. إخفاء خاصية "webdriver" التي تكتشفها المواقع
-    opts.add_argument("--disable-blink-features=AutomationControlled")
-    opts.add_experimental_option("excludeSwitches", ["enable-automation"])
-    opts.add_experimental_option('useAutomationExtension', False)
+    # استخدام User-Agent لجهاز قديم (لأن الأجهزة القديمة تُجبر فيسبوك على البقاء في النسخة المجانية)
+    opts.add_argument('user-agent=Mozilla/5.0 (Linux; U; Android 4.4.2; en-us; LGMS323 Build/KOT49I.MS32310c) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36')
     
     driver = webdriver.Chrome(options=opts)
-    
-    # 3. تعديل خصائص الجافا سكريبت لتبدو كمتصفح طبيعي
-    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-        "source": """
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined
-            })
-        """
-    })
 
     try:
-        driver.get("https://free.facebook.com/login.php")
-        time.sleep(random.uniform(2, 4)) # انتظار عشوائي لتبدو كإنسان
-        capture(message.chat.id, driver, "1️⃣ الصفحة الرئيسية (نمط التخفي)")
+        # الدخول المباشر لرابط تسجيل الدخول في النسخة المجانية
+        driver.get("https://free.facebook.com/login/?next&ref=dbl&fl&refid=8")
+        time.sleep(3)
 
-        # إدخال البيانات ببطء بسيط
-        email_el = driver.find_element(By.NAME, "email")
-        for char in uid:
-            email_el.send_keys(char)
-            time.sleep(random.uniform(0.1, 0.3)) # محاكاة الكتابة اليدوية
+        # فحص: هل قام فيسبوك بتغيير الرابط؟ إذا نعم، أعده بالقوة
+        if "free.facebook.com" not in driver.current_url:
+            driver.get("https://free.facebook.com/login.php")
+            time.sleep(2)
 
-        pass_el = driver.find_element(By.NAME, "pass")
-        for char in pas:
-            pass_el.send_keys(char)
-            time.sleep(random.uniform(0.1, 0.3))
+        capture(message.chat.id, driver, "1️⃣ تم تثبيت الصفحة على النسخة المجانية")
 
-        capture(message.chat.id, driver, "2️⃣ تم إدخال البيانات")
-
-        try:
-            driver.find_element(By.NAME, "login").click()
-        except:
-            driver.find_element(By.XPATH, "//input[@type='submit']").click()
+        # إدخال البيانات
+        driver.find_element(By.NAME, "email").send_keys(uid)
+        driver.find_element(By.NAME, "pass").send_keys(pas)
         
-        time.sleep(random.uniform(5, 8))
-        capture(message.chat.id, driver, f"🏁 النتيجة النهائية\nالرابط: {driver.current_url}")
+        # محاولة الضغط على الزر مع منع التوجيه بعد الضغط
+        try:
+            btn = driver.find_element(By.NAME, "login")
+            btn.click()
+        except:
+            driver.execute_script("document.forms[0].submit();") # إرسال الفورم برمجياً إذا اختفى الزر
+
+        bot.send_message(message.chat.id, "🔘 تم إرسال البيانات.. جاري مراقبة النتيجة.")
+        time.sleep(8)
+        
+        # التقاط النتيجة النهائية مع الرابط
+        final_url = driver.current_url
+        capture(message.chat.id, driver, f"🏁 النتيجة النهائية\nالرابط الحالي: {final_url}")
 
     except Exception as e:
         bot.send_message(message.chat.id, f"❌ حدث خطأ: {str(e)[:100]}")
+        capture(message.chat.id, driver, "📸 صورة للوضع الحالي")
     finally:
         driver.quit()
 
