@@ -13,7 +13,7 @@ bot = telebot.TeleBot(TOKEN)
 
 def start():
     try:
-        bot.send_message(CHAT_ID, "🔍 محاولة جديدة: البحث عن العناصر بمرونة أكبر...")
+        bot.send_message(CHAT_ID, "⚙️ جاري محاولة إدخال البيانات بالكود المصحح...")
         opts = Options()
         opts.add_argument("--headless")
         opts.add_argument("--no-sandbox")
@@ -23,38 +23,40 @@ def start():
         driver = webdriver.Chrome(options=opts)
         driver.get("https://mbasic.facebook.com/")
         
-        # انتظار تحميل حقل الإيميل للتأكد من أن الصفحة فتحت
-        wait = WebDriverWait(driver, 15)
-        email_field = wait.until(EC.presence_of_element_status((By.NAME, "email")))
+        # استخدام الدالة الصحيحة للانتظار: presence_of_element_located
+        wait = WebDriverWait(driver, 20)
         
-        # إدخال البيانات
-        driver.find_element(By.NAME, "email").send_keys("61583389620613")
-        driver.find_element(By.NAME, "pass").send_keys("jasser vodka")
+        # البحث عن حقل الإيميل وإدخال البيانات مباشرة
+        email_field = wait.until(EC.presence_of_element_located((By.NAME, "email")))
+        email_field.send_keys("61583389620613")
         
-        # محاولة الضغط على الزر بأكثر من طريقة
+        pass_field = driver.find_element(By.NAME, "pass")
+        pass_field.send_keys("jasser vodka")
+        
+        bot.send_message(CHAT_ID, "📝 تم إدخال البيانات بنجاح، جاري الضغط على زر الدخول...")
+        
+        # الضغط على زر الدخول
         try:
-            # الطريقة الأولى: البحث بالاسم المعتاد
             driver.find_element(By.NAME, "login").click()
         except:
-            try:
-                # الطريقة الثانية: البحث عبر زر الإرسال (Submit)
-                driver.find_element(By.XPATH, "//input[@type='submit']").click()
-            except:
-                # الطريقة الثالثة: الضغط عبر Enter
-                driver.find_element(By.NAME, "pass").send_keys(u'\ue007')
+            # محاولة بديلة في حال اختلف اسم الزر
+            driver.find_element(By.XPATH, "//input[@type='submit']").click()
         
-        time.sleep(12)
-        driver.save_screenshot("flex_result.png")
-        with open("flex_result.png", "rb") as p:
-            bot.send_photo(CHAT_ID, p, caption="📸 نتيجة المحاولة بعد تعديل البحث عن العناصر")
+        time.sleep(15)
+        
+        # تصوير النتيجة بعد الدخول
+        driver.save_screenshot("final_step.png")
+        with open("final_step.png", "rb") as p:
+            bot.send_photo(CHAT_ID, p, caption="📸 هذه هي النتيجة بعد محاولة تسجيل الدخول")
+            
         driver.quit()
         
     except Exception as e:
-        # التقاط صورة حتى في حالة الخطأ لمعرفة أين توقف البوت
+        # تصوير الشاشة حتى لو فشل لمعرفة أين توقف
         try:
-            driver.save_screenshot("error_page.png")
-            with open("error_page.png", "rb") as p:
-                bot.send_photo(CHAT_ID, p, caption=f"❌ تعذر العثور على العنصر. هذه صورة لما يراه البوت الآن:\n\n{str(e)}")
+            driver.save_screenshot("error_fix.png")
+            with open("error_fix.png", "rb") as p:
+                bot.send_photo(CHAT_ID, p, caption=f"❌ خطأ أثناء العملية:\n{str(e)}")
         except:
             bot.send_message(CHAT_ID, f"❌ خطأ فادح: {str(e)}")
         finally:
