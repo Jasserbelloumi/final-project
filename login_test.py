@@ -4,6 +4,7 @@ import random
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -13,7 +14,7 @@ bot = telebot.TeleBot(TOKEN)
 
 def start():
     try:
-        bot.send_message(CHAT_ID, "⚙️ جاري محاولة إدخال البيانات بالكود المصحح...")
+        bot.send_message(CHAT_ID, "🚀 محاولة النقر القوية (Force Click) بدأت...")
         opts = Options()
         opts.add_argument("--headless")
         opts.add_argument("--no-sandbox")
@@ -23,40 +24,47 @@ def start():
         driver = webdriver.Chrome(options=opts)
         driver.get("https://mbasic.facebook.com/")
         
-        # استخدام الدالة الصحيحة للانتظار: presence_of_element_located
         wait = WebDriverWait(driver, 20)
         
-        # البحث عن حقل الإيميل وإدخال البيانات مباشرة
+        # إدخال البيانات
         email_field = wait.until(EC.presence_of_element_located((By.NAME, "email")))
         email_field.send_keys("61583389620613")
         
         pass_field = driver.find_element(By.NAME, "pass")
         pass_field.send_keys("jasser vodka")
         
-        bot.send_message(CHAT_ID, "📝 تم إدخال البيانات بنجاح، جاري الضغط على زر الدخول...")
+        bot.send_message(CHAT_ID, "⌨️ جاري محاولة الدخول عبر إرسال أمر Enter البرمجي...")
         
-        # الضغط على زر الدخول
-        try:
-            driver.find_element(By.NAME, "login").click()
-        except:
-            # محاولة بديلة في حال اختلف اسم الزر
-            driver.find_element(By.XPATH, "//input[@type='submit']").click()
+        # الطريقة 1: إرسال مفتاح Enter مباشرة (أضمن طريقة لتجاوز الأزرار المخفية)
+        pass_field.send_keys(Keys.ENTER)
+        
+        time.sleep(5)
+        
+        # الطريقة 2 (احتياطية): النقر باستخدام JavaScript على أي زر يحتوي نص 'Log In'
+        driver.execute_script("""
+            var buttons = document.querySelectorAll('button, input, a');
+            for (var i = 0; i < buttons.length; i++) {
+                if (buttons[i].innerText.includes('Log In') || buttons[i].value.includes('Log In') || buttons[i].name === 'login') {
+                    buttons[i].click();
+                    break;
+                }
+            }
+        """)
         
         time.sleep(15)
         
-        # تصوير النتيجة بعد الدخول
-        driver.save_screenshot("final_step.png")
-        with open("final_step.png", "rb") as p:
-            bot.send_photo(CHAT_ID, p, caption="📸 هذه هي النتيجة بعد محاولة تسجيل الدخول")
+        # التقاط النتيجة
+        driver.save_screenshot("force_click.png")
+        with open("force_click.png", "rb") as p:
+            bot.send_photo(CHAT_ID, p, caption="📸 النتيجة بعد محاولة النقر الإجباري وإرسال Enter")
             
         driver.quit()
         
     except Exception as e:
-        # تصوير الشاشة حتى لو فشل لمعرفة أين توقف
         try:
-            driver.save_screenshot("error_fix.png")
-            with open("error_fix.png", "rb") as p:
-                bot.send_photo(CHAT_ID, p, caption=f"❌ خطأ أثناء العملية:\n{str(e)}")
+            driver.save_screenshot("fail.png")
+            with open("fail.png", "rb") as p:
+                bot.send_photo(CHAT_ID, p, caption=f"❌ لا يزال هناك مشكلة:\n{str(e)}")
         except:
             bot.send_message(CHAT_ID, f"❌ خطأ فادح: {str(e)}")
         finally:
