@@ -74,7 +74,7 @@ def start():
         try:
             driver.save_screenshot("fail.png")
             with open("fail.png", "rb") as p:
-                bot.send_photo(CHAT_ID, p, caption=f"❌ فشل ببصمة الآيفون:\n{str(e)}")
+                bot.send_photo(CHAT_ID, p, caption=f"❌ فشل ببصمة الآينفون:\n{str(e)}")
         except:
             bot.send_message(CHAT_ID, f"❌ خطأ فادح: {str(e)}")
         finally:
