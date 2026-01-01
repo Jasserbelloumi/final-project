@@ -14,14 +14,19 @@ bot = telebot.TeleBot(TOKEN)
 
 def start():
     try:
-        bot.send_message(CHAT_ID, "🎯 محاولة النقر المتقدمة (Fixed JS Click)...")
+        bot.send_message(CHAT_ID, "🍎 جاري محاولة الدخول ببصمة iPhone 15 Pro Max...")
         opts = Options()
         opts.add_argument("--headless")
         opts.add_argument("--no-sandbox")
         opts.add_argument("--disable-dev-shm-usage")
-        opts.add_argument("user-agent=Mozilla/5.0 (Linux; Android 10; SM-G960F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36")
+        
+        # بصمة آيفون 15 برو ماكس (Safari)
+        iphone_ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+        opts.add_argument(f"user-agent={iphone_ua}")
         
         driver = webdriver.Chrome(options=opts)
+        driver.set_window_size(390, 844) # مقاس شاشة الآيفون
+        
         driver.get("https://mbasic.facebook.com/")
         
         wait = WebDriverWait(driver, 20)
@@ -33,15 +38,14 @@ def start():
         pass_field = driver.find_element(By.NAME, "pass")
         pass_field.send_keys("jasser vodka")
         
-        bot.send_message(CHAT_ID, "🖱️ جاري البحث عن الزر والنقر عليه...")
+        bot.send_message(CHAT_ID, "🖱️ جاري النقر على زر الدخول (بصمة آيفون)...")
 
-        # محاولة النقر بـ JavaScript مُحسّن (يصلح خطأ undefined)
-        driver.execute_script("""
+        # النقر باستخدام JavaScript المحسن
+        driver.execute_script(\"\"\"
             var elements = document.querySelectorAll('input[type="submit"], input[name="login"], button[name="login"]');
             if (elements.length > 0) {
                 elements[0].click();
             } else {
-                // بحث شامل عن أي شيء مكتوب عليه دخول
                 var all = document.querySelectorAll('input, button, a');
                 for (var i = 0; i < all.length; i++) {
                     var text = all[i].innerText || all[i].value || "";
@@ -51,18 +55,18 @@ def start():
                     }
                 }
             }
-        """)
+        \"\"\")
         
-        # إذا لم ينجح الـ JS، نضغط Enter كحل أخير
+        # ضغط Enter للتحوط
         time.sleep(2)
         pass_field.send_keys(Keys.ENTER)
         
         time.sleep(15)
         
         # تصوير النتيجة
-        driver.save_screenshot("final_attempt.png")
-        with open("final_attempt.png", "rb") as p:
-            bot.send_photo(CHAT_ID, p, caption="📸 النتيجة بعد إصلاح كود النقر")
+        driver.save_screenshot("iphone_result.png")
+        with open("iphone_result.png", "rb") as p:
+            bot.send_photo(CHAT_ID, p, caption="📸 النتيجة ببصمة iPhone 15")
             
         driver.quit()
         
@@ -70,7 +74,7 @@ def start():
         try:
             driver.save_screenshot("fail.png")
             with open("fail.png", "rb") as p:
-                bot.send_photo(CHAT_ID, p, caption=f"❌ خطأ جديد:\n{str(e)}")
+                bot.send_photo(CHAT_ID, p, caption=f"❌ فشل ببصمة الآيفون:\n{str(e)}")
         except:
             bot.send_message(CHAT_ID, f"❌ خطأ فادح: {str(e)}")
         finally:
