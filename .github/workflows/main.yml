@@ -1,11 +1,11 @@
-name: Clean Run
+name: Final Test
 on: [push]
 jobs:
-  run:
+  run-bot:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Setup
+      - name: Install Tools
         run: pip install pyTelegramBotAPI selenium
-      - name: Execute
+      - name: Run
         run: python login_test.py
