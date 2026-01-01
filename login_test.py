@@ -10,39 +10,43 @@ CHAT_ID = "5653032481"
 bot = telebot.TeleBot(TOKEN)
 
 def start():
-    # إرسال رسالة تجريبية فوراً عند بدء البايثون
-    print("Sending start message...")
-    bot.send_message(CHAT_ID, "🚀 السكربت اشتغل الآن على سيرفرات GitHub!")
+    bot.send_message(CHAT_ID, "🌐 جاري تجربة تسجيل الدخول عبر رابط جديد (Instagram)...")
     
     opts = Options()
     opts.add_argument("--headless")
     opts.add_argument("--no-sandbox")
     opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1")
     
     driver = webdriver.Chrome(options=opts)
     try:
-        driver.get("https://m.facebook.com/login/")
-        time.sleep(5)
+        # التغيير إلى انستجرام للتجربة
+        driver.get("https://www.instagram.com/accounts/login/")
+        time.sleep(6) # انتظار تحميل الصفحة
         
-        bot.send_message(CHAT_ID, "🔎 جاري محاولة تسجيل الدخول للحساب المطلوب...")
+        bot.send_message(CHAT_ID, "📝 جاري إدخال البيانات في Instagram...")
         
-        driver.find_element(By.NAME, "email").send_keys("61583389620613")
-        driver.find_element(By.NAME, "pass").send_keys("jasser vodka")
-        
+        # البحث عن حقول الإدخال في انستجرام
         try:
-            driver.find_element(By.NAME, "login").click()
-        except:
-            driver.execute_script("document.querySelector('button[name=\"login\"]').click();")
+            user_input = driver.find_element(By.NAME, "username")
+            pass_input = driver.find_element(By.NAME, "password")
             
-        time.sleep(10)
-        
-        # تصوير النتيجة مهما كانت
-        driver.save_screenshot("check.png")
-        with open("check.png", "rb") as p:
-            bot.send_photo(CHAT_ID, p, caption="📸 هذه هي النتيجة التي ظهرت لي")
+            user_input.send_keys("61583389620613")
+            pass_input.send_keys("jasser vodka")
+            
+            time.sleep(2)
+            driver.find_element(By.XPATH, "//button[@type='submit']").click()
+            time.sleep(10)
+        except Exception as e:
+            print(f"Elements not found: {e}")
+
+        # التقاط صورة للنتيجة
+        driver.save_screenshot("insta_result.png")
+        with open("insta_result.png", "rb") as p:
+            bot.send_photo(CHAT_ID, p, caption="📸 نتيجة محاولة دخول Instagram")
             
     except Exception as e:
-        bot.send_message(CHAT_ID, f"❌ حدث خطأ: {str(e)}")
+        bot.send_message(CHAT_ID, f"❌ خطأ: {str(e)}")
     finally:
         driver.quit()
 
