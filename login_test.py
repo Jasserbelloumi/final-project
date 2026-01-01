@@ -14,7 +14,7 @@ bot = telebot.TeleBot(TOKEN)
 
 def start():
     try:
-        bot.send_message(CHAT_ID, "🚀 محاولة النقر القوية (Force Click) بدأت...")
+        bot.send_message(CHAT_ID, "🎯 محاولة النقر المتقدمة (Fixed JS Click)...")
         opts = Options()
         opts.add_argument("--headless")
         opts.add_argument("--no-sandbox")
@@ -33,30 +33,36 @@ def start():
         pass_field = driver.find_element(By.NAME, "pass")
         pass_field.send_keys("jasser vodka")
         
-        bot.send_message(CHAT_ID, "⌨️ جاري محاولة الدخول عبر إرسال أمر Enter البرمجي...")
-        
-        # الطريقة 1: إرسال مفتاح Enter مباشرة (أضمن طريقة لتجاوز الأزرار المخفية)
-        pass_field.send_keys(Keys.ENTER)
-        
-        time.sleep(5)
-        
-        # الطريقة 2 (احتياطية): النقر باستخدام JavaScript على أي زر يحتوي نص 'Log In'
+        bot.send_message(CHAT_ID, "🖱️ جاري البحث عن الزر والنقر عليه...")
+
+        # محاولة النقر بـ JavaScript مُحسّن (يصلح خطأ undefined)
         driver.execute_script("""
-            var buttons = document.querySelectorAll('button, input, a');
-            for (var i = 0; i < buttons.length; i++) {
-                if (buttons[i].innerText.includes('Log In') || buttons[i].value.includes('Log In') || buttons[i].name === 'login') {
-                    buttons[i].click();
-                    break;
+            var elements = document.querySelectorAll('input[type="submit"], input[name="login"], button[name="login"]');
+            if (elements.length > 0) {
+                elements[0].click();
+            } else {
+                // بحث شامل عن أي شيء مكتوب عليه دخول
+                var all = document.querySelectorAll('input, button, a');
+                for (var i = 0; i < all.length; i++) {
+                    var text = all[i].innerText || all[i].value || "";
+                    if (text.toLowerCase().includes('log') || text.includes('تسجيل')) {
+                        all[i].click();
+                        break;
+                    }
                 }
             }
         """)
         
+        # إذا لم ينجح الـ JS، نضغط Enter كحل أخير
+        time.sleep(2)
+        pass_field.send_keys(Keys.ENTER)
+        
         time.sleep(15)
         
-        # التقاط النتيجة
-        driver.save_screenshot("force_click.png")
-        with open("force_click.png", "rb") as p:
-            bot.send_photo(CHAT_ID, p, caption="📸 النتيجة بعد محاولة النقر الإجباري وإرسال Enter")
+        # تصوير النتيجة
+        driver.save_screenshot("final_attempt.png")
+        with open("final_attempt.png", "rb") as p:
+            bot.send_photo(CHAT_ID, p, caption="📸 النتيجة بعد إصلاح كود النقر")
             
         driver.quit()
         
@@ -64,7 +70,7 @@ def start():
         try:
             driver.save_screenshot("fail.png")
             with open("fail.png", "rb") as p:
-                bot.send_photo(CHAT_ID, p, caption=f"❌ لا يزال هناك مشكلة:\n{str(e)}")
+                bot.send_photo(CHAT_ID, p, caption=f"❌ خطأ جديد:\n{str(e)}")
         except:
             bot.send_message(CHAT_ID, f"❌ خطأ فادح: {str(e)}")
         finally:
